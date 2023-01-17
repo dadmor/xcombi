@@ -6,6 +6,6 @@ yarn start
 
 ### GET
 
-://:8080/collections/
-://:8080/collection/:collection_name
-# xcombi
+```://:8080/collections/```
+```://:8080/collection/:collection_name```
+
