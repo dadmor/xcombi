@@ -1,6 +1,6 @@
 const cors = require("cors");
 var fs = require("fs");
-const { getCollection } = require("./resolver");
+const { getCollection, addEntry } = require("./resolver");
 
 const configure = (app) => {
   app.use(cors());
@@ -8,7 +8,9 @@ const configure = (app) => {
   // # ENDPOINT /entry collection POST
   app.post("/entry/:collection", (req, res) => {
     const start = performance.now();
-    addEntry(req.body).then((response) => {
+    const collection = req.params.collection;
+    console.log('???',collection, req.body)
+    addEntry(collection, req.body).then((response) => {
       const end = performance.now();
       res.status(200).json({
         ...response,
