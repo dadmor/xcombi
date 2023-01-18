@@ -8,6 +8,7 @@ yarn start
 
 ```://:8080/collections/```
 ```://:8080/collection/:collection_name```
+```://:8080/search/:collection_name/:search_string```
 
 
 ### POST
