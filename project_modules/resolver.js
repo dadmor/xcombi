@@ -1,4 +1,5 @@
 var fs = require("fs");
+const { createSlug, indexDefaultValidationGuard } = require("./helpers");
 const _dir = `./base`;
 const resultError = { error: "errortype", errormessage: "" };
 
@@ -18,7 +19,7 @@ const getCollectionShema = (collection_name) => {
   }
 };
 
-const getCollection = (collection_name) => {
+const getCollectionSchema = (collection_name) => {
   return new Promise((resolve) => {
     const schema = getCollectionShema(collection_name);
     resolve({ ...schema });
@@ -28,55 +29,47 @@ const getCollection = (collection_name) => {
 };
 
 const addEntry = (collection_name, data) => {
-  const indexDefaultValidationGuard = (valideteData) => {
-    for (const key in valideteData) {
-      if (valideteData[key].index === true) {
-        if (!data[key]) return false;
-      }
-      return true;
-    }
-  };
-  const slug = (data) =>
-    data
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-
   return new Promise((resolve) => {
-    /* check data */
     const schema = getCollectionShema(collection_name);
-    /* check required indexes */
-    if (indexDefaultValidationGuard(schema.fields)) {
-      /* acceptable list */
+    /* check data */
+
+    if (indexDefaultValidationGuard(schema.fields, data)) {
       const intersection = Object.keys(schema.fields).filter((x) =>
         Object.keys(data).includes(x)
       );
 
-      /* create slug */
-      const prepareSlug = slug(data[schema.meta.slug]);
+      const prepareSlug = createSlug(data[schema.meta.slug]);
       const subDir = prepareSlug.substring(0, 3);
 
-      /* create static json document */
       const prepareDocument = {};
       for (const key in intersection) {
         prepareDocument[intersection[key]] = data[intersection[key]];
       }
-      /* build dir */
-      console.log(`${_dir}/documents/${collection_name}/${subDir}`)
-      if (
-        !fs.existsSync(`${_dir}/documents/${collection_name}/${subDir}`)
-      ) {
+
+      if (!fs.existsSync(`${_dir}/documents/${collection_name}/${subDir}`)) {
         fs.mkdirSync(`${_dir}/documents/${collection_name}/${subDir}`);
       }
-      /* save document */
+
       fs.writeFileSync(
         `${_dir}/documents/${collection_name}/${subDir}/${prepareSlug}.json`,
         JSON.stringify(prepareDocument)
       );
-      //console.log(prepare);
+
+      let collectionindex = "";
+      for (const key in schema.fields) {
+        if (schema.fields[key].index) {
+          collectionindex = collectionindex + prepareDocument[key] + "¦";
+        }
+      }
+      collectionindex = collectionindex + "\n";
+      fs.appendFileSync(
+        `${_dir}/collections/${collection_name}.txt`,
+        collectionindex
+      );
+
       resolve({});
+    } else {
+      /* return data validation error */
     }
   }).catch(function (e) {
     collection_name;
@@ -87,7 +80,7 @@ const addEntry = (collection_name, data) => {
 const getEntry = (collection_name) => {};
 
 module.exports = {
-  getCollection,
+  getCollectionSchema,
   getEntry,
   addEntry,
 };
