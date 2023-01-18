@@ -1,6 +1,3 @@
-// TODO - rebuild to more modular
-// https://getsimple.works/how-to-make-nodejs-applications-modular
-
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
