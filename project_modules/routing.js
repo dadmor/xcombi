@@ -1,6 +1,9 @@
 const cors = require("cors");
 const { getCollectionSchema, addEntry, getEntry } = require("./resolver");
 const { genereteFake } = require("./helpers");
+const { searchStream } = require("./search");
+var fs = require("fs");
+const { exists } = require("fs");
 
 const configure = (app) => {
   app.use(cors());
@@ -58,18 +61,39 @@ const configure = (app) => {
     });
   });
 
-  // # ENDPOINT /search collection GET
   app.get("/search/:collection/:search", (req, res) => {
     const start = performance.now();
+    const collection = req.params.collection;
     const search = req.params.search;
-    const slug = req.params.slug;
-    // getEntry(collection,slug).then((response) => {
-    //   const end = performance.now();
-    //   res.status(200).json({
-    //     ...response,
-    //     meta: { ...response.meta, timeSpent: end - start },
-    //   });
-    // });
+
+    /* todo: move to resolver */
+    exists(`./base/collections/${collection}.txt`, (e) => {
+      if (!e) {
+        res.status(404).json({ error: "Resources not exist" });
+        return;
+      }
+    });
+
+    if (req.params.text && req.params.text.length < 4) {
+      res.status(400).json({ warning: "Need more characters (min4)" });
+      return;
+    }
+
+    searchStream(`./base/collections/${collection}.txt`, search).then((n) => {
+      if (n?.length === 0) {
+        res.status(400).json({
+          warning: `I dont have results for this request`,
+        });
+      }
+      if (n?.length > 0) {
+        const end = performance.now();
+        const sliced = n.slice(0, 10);
+        res.json({
+          results: sliced,
+          meta: { n: n?.length, timeSpent: end - start },
+        });
+      }
+    });
   });
 
   app.get("*", (req, res) => {
