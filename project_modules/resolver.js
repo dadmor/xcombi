@@ -77,7 +77,9 @@ const addEntry = (collection_name, data) => {
   });
 };
 
-const getEntry = (collection_name) => {};
+const getEntry = (collection_name, entry_slug) => {
+  console.log(collection_name, entry_slug)
+};
 
 module.exports = {
   getCollectionSchema,
