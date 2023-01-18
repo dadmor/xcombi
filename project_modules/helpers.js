@@ -16,6 +16,17 @@ const indexDefaultValidationGuard = (valideteData, data) => {
   }
 };
 
+const getIndexRow = (schema, data) => {
+  let collectionindex = "";
+  for (const key in schema.fields) {
+    if (schema.fields[key].index) {
+      collectionindex = collectionindex + data[key] + "¦";
+    }
+  }
+  collectionindex = collectionindex + "\n";
+  return collectionindex
+}
+
 const genereteFake = (schema) => {
   const out = {};
   for (const key in schema.fields) {
@@ -42,4 +53,5 @@ module.exports = {
   createSlug,
   indexDefaultValidationGuard,
   genereteFake,
+  getIndexRow,
 };

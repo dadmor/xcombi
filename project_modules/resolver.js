@@ -1,5 +1,9 @@
 var fs = require("fs");
-const { createSlug, indexDefaultValidationGuard } = require("./helpers");
+const {
+  createSlug,
+  indexDefaultValidationGuard,
+  getIndexRow,
+} = require("./helpers");
 const _dir = `./base`;
 const resultError = { error: "errortype", errormessage: "" };
 
@@ -42,43 +46,43 @@ const addEntry = (collection_name, data) => {
       const subDir = prepareSlug.substring(0, 3);
 
       const prepareDocument = {};
+      /* todo - move to helpers */
       for (const key in intersection) {
         prepareDocument[intersection[key]] = data[intersection[key]];
       }
+      const indexRow = getIndexRow(schema, prepareDocument);
 
+      /* todo - add transaction guardian */
       if (!fs.existsSync(`${_dir}/documents/${collection_name}/${subDir}`)) {
         fs.mkdirSync(`${_dir}/documents/${collection_name}/${subDir}`);
       }
-
       fs.writeFileSync(
         `${_dir}/documents/${collection_name}/${subDir}/${prepareSlug}.json`,
         JSON.stringify(prepareDocument)
       );
-
-      let collectionindex = "";
-      for (const key in schema.fields) {
-        if (schema.fields[key].index) {
-          collectionindex = collectionindex + prepareDocument[key] + "¦";
-        }
-      }
-      collectionindex = collectionindex + "\n";
-      fs.appendFileSync(
-        `${_dir}/collections/${collection_name}.txt`,
-        collectionindex
-      );
-
-      resolve({});
+      fs.appendFileSync(`${_dir}/collections/${collection_name}.txt`, indexRow);
+      resolve({ ...prepareDocument, meta: { index: indexRow } });
     } else {
-      /* return data validation error */
+      /* todo: return data validation error */
     }
   }).catch(function (e) {
-    collection_name;
+    /* todo: add method for that */
     return resultError;
   });
 };
 
 const getEntry = (collection_name, entry_slug) => {
-  console.log(collection_name, entry_slug)
+  return new Promise((resolve) => {
+    const subDir = entry_slug.substring(0, 3);
+    const data = fs.readFileSync(
+      `${_dir}/documents/${collection_name}/${subDir}/${entry_slug}.json`,
+      "utf8"
+    );
+    resolve({ ...JSON.parse(data), meta: {} });
+  }).catch(function (e) {
+    /* todo: add method for that */
+    return resultError;
+  });
 };
 
 module.exports = {

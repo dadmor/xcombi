@@ -1,6 +1,5 @@
 const cors = require("cors");
-var fs = require("fs");
-const { getCollectionSchema, addEntry } = require("./resolver");
+const { getCollectionSchema, addEntry, getEntry } = require("./resolver");
 const { genereteFake } = require("./helpers");
 
 const configure = (app) => {
@@ -23,6 +22,7 @@ const configure = (app) => {
     const collection = req.params.collection;
 
     getCollectionSchema(collection).then((response) => {
+      console.log(response);
       addEntry(collection, genereteFake(response)).then((entryResponse) => {
         const end = performance.now();
         res.status(200).json({
@@ -47,13 +47,29 @@ const configure = (app) => {
   // # ENDPOINT /entry collection GET
   app.get("/entry/:collection/:slug", (req, res) => {
     const start = performance.now();
-    getEntry().then((response) => {
+    const collection = req.params.collection;
+    const slug = req.params.slug;
+    getEntry(collection, slug).then((response) => {
       const end = performance.now();
       res.status(200).json({
         ...response,
         meta: { ...response.meta, timeSpent: end - start },
       });
     });
+  });
+
+  // # ENDPOINT /search collection GET
+  app.get("/search/:collection/:search", (req, res) => {
+    const start = performance.now();
+    const search = req.params.search;
+    const slug = req.params.slug;
+    // getEntry(collection,slug).then((response) => {
+    //   const end = performance.now();
+    //   res.status(200).json({
+    //     ...response,
+    //     meta: { ...response.meta, timeSpent: end - start },
+    //   });
+    // });
   });
 
   app.get("*", (req, res) => {
